@@ -1,84 +1,90 @@
 import { Injectable } from '@nestjs/common';
-
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { NotFoundException } from '@nestjs/common';
 @Injectable()
 export class UsersService {
-    private users = [
-        {
-            id: 1,
-            name: 'john Doe',
-            email: 'johndoe@example.com',
-            role: 'ADMIN'
-        },
-        {
-            id: 2,
-            name: 'Tim',
-            email: 'tim@example.com',
-            role: 'ADMIN'
-        },
-        {
-            id: 3,
-            name: "Nathan",
-            email: "nathan@example.com",
-            role: "INTERN"
-        },
-        {
-            id: 4,
-            name: "Bear Grills",
-            email: "beargrills@example.com",
-            role: "ENGINEER"
-        },
-        {
-            id: 5,
-            name: "Michel Jonson",
-            email: "micheljonson@example.com",
-            role: "ENGINEER"
-        },
-    ]
+  private users = [
+    {
+      id: 1,
+      name: 'john Doe',
+      email: 'johndoe@example.com',
+      role: 'admin',
+    },
+    {
+      id: 2,
+      name: 'Tim',
+      email: 'tim@example.com',
+      role: 'admin',
+    },
+    {
+      id: 3,
+      name: 'Nathan',
+      email: 'nathan@example.com',
+      role: 'intern',
+    },
+    {
+      id: 4,
+      name: 'Bear Grills',
+      email: 'beargrills@example.com',
+      role: 'engineer',
+    },
+    {
+      id: 5,
+      name: 'Michel Jonson',
+      email: 'micheljonson@example.com',
+      role: 'engineer',
+    },
+  ];
 
-    findAll(role?: 'INTERN' | 'ENGINEER' | 'ADMIN'){
-        if(role){
-            return this.users.filter(user=>user.role === role)
-        }
-
-        return this.users
+  findAll(role?: 'intern' | 'engineer' | 'admin') {
+    if (role && role !== 'intern' && role !== 'engineer' && role !== 'admin') {
+        throw new NotFoundException("Role not found")
+    }
+    if (role) {
+      return this.users.filter((user) => user.role === role);
     }
 
-    findOne(id: number){
-        const user = this.users.find(user => user.id === id)
+    return this.users;
+  }
 
-        return user;
-    }
+  findOne(id: number) {
+    const user = this.users.find((user) => user.id === id);
 
+    if (!user) throw new NotFoundException('User not found');
 
-    create(user: {name:string, email:string, role:'INTERN'|'ENGINEER'|'ADMIN'}){
-        const userByHigestId = [...this.users].sort((a, b)=>b.id - a.id)
+    return user;
+  }
 
-        const newUser = {
-            id: userByHigestId[0].id + 1,
-            ...user
-        }
+  create(createUserDto: CreateUserDto) {
+    const userByHigestId = [...this.users].sort((a, b) => b.id - a.id);
 
-        this.users.push(newUser);
+    const newUser = {
+      id: userByHigestId[0].id + 1,
+      ...createUserDto,
+    };
 
-        return newUser;
-    }
+    this.users.push(newUser);
 
-    update(id: number, updatedUser: {name?:string, email?:string, role?:'INTERN'|'ENGINEER'|'ADMIN'}){
-        this.users = this.users.map(user =>{
-            if(user.id == id){
-                return {...user, ...updatedUser}
-            }
-            return user
-        })
+    return newUser;
+  }
 
-        return this.findOne(id);
-    }
+  update(id: number, updateUserDto: UpdateUserDto) {
+    this.users = this.users.map((user) => {
+      if (user.id == id) {
+        return { ...user, ...updateUserDto };
+      }
+      return user;
+    });
 
-    delete(id:number){
-        const removedUser = this.findOne(id);
+    return this.findOne(id);
+  }
 
-        this.users = this.users.filter(user => user.id !== id);
+  delete(id: number) {
+    const removedUser = this.findOne(id);
 
-        return removedUser;
-    }
+    this.users = this.users.filter((user) => user.id !== id);
+
+    return removedUser;
+  }
 }
